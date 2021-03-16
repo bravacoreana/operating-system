@@ -34,7 +34,7 @@ The memory layout of a process is divided into multiple sections:
   - 유저가 함수를 호출하면 스택 섹션에 함수가 쌓인다.
   - temporary data storage when invoking functions such as function parameters, return addresses and local variables<br/>
 
-<img src="src/02-layout-of-a-process-in-memory.png" alt="drawing" width="500"/><br/><br/>
+![](src/02-layout-of-a-process-in-memory.PNG)<br/><br/>
 
 **🔥 [우리](https://github.com/woori3104)님 특강!**<br/>
 스택은 컴파일할 때 딱 정해지므로 크기를 바꾸지 못함, 대신 빠르다. 그리고 함수를 부를 때 메모리에 저장되므로 다른 함수에서 가져다 쓸 수 없음. 더불어 그 함수에 의해 불려진 변수 등의 메모리가 함수가 불려질 때 스택에 쌓이고 함수가 종료되면 지워짐. <br/>

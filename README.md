@@ -19,25 +19,25 @@
 5. 해냈을 때의 성취감을 위해 느려도 끝까지 노력해보기 🙏🏼
 
 ## 📝 진도표
-- [인프런 공룡책 강의 출처](https://www.inflearn.com/course/%EC%9A%B4%EC%98%81%EC%B2%B4%EC%A0%9C-%EA%B3%B5%EB%A3%A1%EC%B1%85-%EC%A0%84%EA%B3%B5%EA%B0%95%EC%9D%98)
 
+- [인프런 공룡책 강의 출처](https://www.inflearn.com/course/%EC%9A%B4%EC%98%81%EC%B2%B4%EC%A0%9C-%EA%B3%B5%EB%A3%A1%EC%B1%85-%EC%A0%84%EA%B3%B5%EA%B0%95%EC%9D%98)
 
 해당 repository는 전적으로 위의 출처를 기반으로 작성됩니다 :)
 
-
-  | Section |             Title             | Start Date  |  End Date   |              Link               |
-  | :-----: | :---------------------------: | :---------: | :---------: | :-----------------------------: |
-  |    1    | Introduction & O/S Structures | 2021-Mar-03 | 2021-Mar-04 | 📝 [READ](/chapter01/README.md) |
-  |    2    |           Processes           | 2021-Mar-04 | 2021-Mar-05 | 📝 [READ](/chapter02/README.md) |
-  |    3    |     Thread & Concurrency      | 2021-Mar-14 |             | 📝 [READ](/chapter03/README.md) |
-  |    4    |        CPU Scheduling         |             |             |                                 |
-  |    5    |     Synchronization Tools     |             |             |                                 |
-  |    6    |   Synchronization Examples    |             |             |                                 |
-  |    7    |           Deadlocks           |             |             |                                 |
-  |    8    |          Main Memory          |             |             |                                 |
-  |    9    |        Virtual Memory         |             |             |                                 |
-  |   10    |      Storage Management       |             |             |                                 |
-  |   11    |     Security & Protection     |             |             |                                 |
+| Section |          Title           | Start Date  |  End Date   |              Link               |
+| :-----: | :----------------------: | :---------: | :---------: | :-----------------------------: |
+|    1    |       Introduction       | 2021-Mar-03 | 2021-Mar-04 | 📝 [READ](/chapter01/README.md) |
+|    2    |      O/S Structures      | 2021-Mar-03 | 2021-Mar-04 | 📝 [READ](/chapter02/README.md) |
+|    3    |        Processes         | 2021-Mar-14 | 2021-Mar-16 | 📝 [READ](/chapter03/README.md) |
+|    4    |   Thread & Concurrency   |             |             |                                 |
+|    5    |      CPU Scheduling      |             |             |                                 |
+|    6    |  Synchronization Tools   |             |             |                                 |
+|    7    | Synchronization Examples |             |             |                                 |
+|    8    |        Deadlocks         |             |             |                                 |
+|    9    |       Main Memory        |             |             |                                 |
+|   10    |      Virtual Memory      |             |             |                                 |
+|   11    |    Storage Management    |             |             |                                 |
+|   12    |  Security & Protection   |             |             |                                 |
 
 ---
 

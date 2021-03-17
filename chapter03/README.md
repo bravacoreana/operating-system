@@ -1,8 +1,6 @@
 # Processes
 
-## 03. 프로세스의 이해
-
-#### 3.1 Process Concept
+## 3.1 Process Concept
 
 A process is a program in execution.
 
@@ -14,6 +12,9 @@ A process is a program in execution.
   - I/O devices
 
 프로그램들을 실행시키는 일을 하는 것이 운영체제다. 그리고 실행 중인 프로그램을 프로세스라고 한다. 작업의 단위가 프로세스의 단위이며, 하나의 프로세스가 실행되기 위해서는 CPU time, memory, files, I/O device 등의 자원이 필요하다. (여기서 파일과 I/O 장치를 통틀어 resource 라고 한다.) 다시 말해 컴퓨터라는 것이 CPU와 메모리 구조로 되어 있고 이 메모리 내부의 구조를 하나씩 fetch 해서 실행하는 것을 컴퓨터의 구조라고 한다. 보통 프로그램을 작성하면 이 프로그램의 실행 파일이 HDD나 SSD의 스토리지에 저장이 되어있다. 이 스토리지에 저장되어 있는 실행 파일을 직접적으로 가져와 실행할 수는 없다. 터미널에서 실행 명령어를 입력하거나 파일 아이콘을 클릭하면 메모리에 실행 파일이 적재되고, CPU는 메모리에 적재되어 있는 실행 파일을 fetch 해 실행한다. 메모리에 적재되어 있는 상태의 프로그램을 process 라고 한다.<br/>
+
+<!-- A process is a program in execution. 즉, 실행중인 프로그램을 프로세스라고 한다. 운영체제 입장에서는 이 프로그램들을 실행시켜주는 일을 하는게 운영체제인데, 작업의 단위는 프로세스 단위다. 하나의 프로세스가 실행되기 위해서는 cpu time, memory, files, i/o devices 등이 필요하다. 여기서 files 와 i/o devices 를 묶어 resources라고도 하며 운영체제는 이 리소스들을 관리할 수 있어야 한다. <br/>
+(다시 말하면) 컴퓨터는 cpu와 메모리 구조로 되어있다. 메모리에 있는 스트럭션들을 하나씩 fetch 해서 execution 하는 것이 컴퓨터의 구조다. 일반적으로 우리가 프로그램을 작성하면 실행파일이 하드디스크나 ssd 스토리지에 저장되어 있다. 이 스토리지에 있는 것을 직접적으로 가져와 실행하는 것은 불가능하다. 쉘에서 명령어를 입력하거나, GUI에서 아이콘을 더블클릭하면 하드디스크 스토리지에 저장되어있는 프로그램(명령어들의 집합, a set of instruction)을 메모리에 로드된다. 그리고 cpu 입장에서는 이것을 fetch 해서 실행할 수 있다. 메모리에 올라왔다고 해서 다 실행되는게 아니라 CPU를 점유해야 실행이 가능하다. 타임쉐어링을 해서 여러개의 프로세스가 동시에 CPU를 공유하고 있기 때문에 concurrent 하게 실행되려면 cpu를 점유할 수 있어야 한다. 또 프로그램이 실행되려면 외부의 파일 시스템이나, 하드디스크의 파일, 프린트 드라이브, 모니터 등의 i/o 디ㅍ바이스를 통해서 파일시스템을 오픈할 수 있어야 한다. -->
 
 ![](src/01-process-concept.png)<br/><br/>
 
@@ -217,3 +218,112 @@ Zombie and Orphan
 - zombie process: a process that has terminated but whose parent has not yet called wait(). <br/>
   부모가 돌아가시진 않았는데 신경을 안씀. 부모는 부모 일을 계속함. 그러면 자식은 좀비처럼 남아 있다...🙊
 - orphan process: a process that has a parent process who did not invoke wait() and instead terminated.
+
+## 3.4 Interprocess Communication
+
+Processes executing concurrently may be
+
+- either _independent_ processes or _cooperating_ processes. <br/>
+  독립적인 프로세스라는 것은 자신의 메모리를 따로 가지고 있고 자기 일을 알아서 한다는 것. 이럴 때 cpu 스케줄링을 잘해주면 서로 영향을 미치지 않고 자기 일을 알아서 잘 해준다. 문제는 cooperating 할 때임. 마치 엄마와 자식간의 관계와 같다. 엄마는 자식에게 계속 간섭을 하려고 하고, 자식은 "내 인생 내 거예요" 하면서 싸울 수 있다. 그렇게 싸우고 나면 자식은 엄마한테 용돈달란 소리를 못하겠지... 이렇게 서로 간의 커뮤니케이션 오류가 생기는 것처럼 프로세스 끼리도 cooperating 할 때(메세지를 주고 받을 때) 오류가 생길 수 있다.
+
+- A process is **independent**
+  - if it does not share data with any other processes.
+  - 서로 메세지 주고 받을 일이 없음
+- A process is **cooperating**
+  - if it can affect or be affected by the other processes.
+  - any processes that shares data with other processes is a cooperating system.
+
+#### 그러면 cooperating system 간의 문제를 어떻게 해결할거냐?
+
+IPC: Inter-Process Communication
+
+- Cooperating processes require an IPC mechanism
+  - that will allow them to exchange data
+  - that is, **send data** to and **receive data** from each other.
+  - Cooperating process들은 IPC 메커니즘이 필요하다. 그런데 IPC 메커니즘을 가만히 생각해보면 결국 데이터를 주고 받는 것이다. 용돈을 주거나 받거나, 성적표를 주거나 받거나..
+- Two fundamental models of IPC:
+  - **shared memory** : 공유메모리를 써서 데이터를 주고받는 방법
+  - **message passing**: 메세지를 주고받는 방법
+  - 이 두가지 중 한가지 방법으로 통신을 하면 된다.
+
+![](src/13-ipc-models.png)
+
+## 3.5 IPC in Shared-Memory Systems
+
+Consider the _Producer-Consumer_ Problem (생산자-소비자 문제)
+:코퍼레이팅 하는 프로세스들간의 가장 기본적인 문제다.
+
+- to illustrate the concept of cooperating processes.
+- a common paradigm for cooperating processes.
+
+- Producer-Consumer Problem:
+  - A producer produces information that is consumed by a consumer.
+  - For example,
+    - a compiler produces assemble code, and an assembler consumes it.
+    - a web server produces an HTML file, and a browser consumes it.
+
+예를 들어 유튜브 서버가 스마트폰으로 스트리밍을 해준다. 스마트폰은 그 스트리밍을 받아서 계속 스크린에 띄워준다. 👉🏼 유튜브 서버가 생산자고 스마트폰이 소비자!
+<br/>
+이런 Producer-Consumer Problem을 두 개의 프로세스 문제로 생각해보자.
+<br/>
+A solution using **shared-memory**:
+
+- to allow producer and consumer to run concurrently.<br/>
+  생산자-소비자 문제를 shared-memory로 해결할 경우, 생산자와 소비자가 동시에 돌아간다. 즉, 생산자와 소비자가 타임 쉐어링을 통해서 cpu를 번갈아가며 점유하면서 두개가 동시에 실행되도록 함.
+- Let a buffer of items be available,
+  - a producer can fill the buffer, and a consumer can empty the buffer.<br/>
+    즉, 버퍼를 shared memory 로 만들면 된다.<br/>
+    ❓ 여기서 버퍼를 shared memory로 만든다는 것은 buffer === shared momery 인가?
+  - 중간에 버퍼를 사용하면 된다. 이 버퍼들을 이용해 생산자는 버퍼에 보내고 싶은 걸 채우고, 소비자는 버퍼에 뭐가 있으면 가져가면 된다.(버퍼는 bounded buffer 와 unbounded 버퍼가 있다.) 버퍼가 무한대라면 이걸 계속 채우면 되겠지만 버퍼를 무한정 줄 수 없기 때문에 대부분 bounded buffer 다. 이 버퍼가 가득 차면, 생산자는 wait 한다. 소비자는 버퍼가 비어있을 경우 버퍼가 찰 때까지 wait 한다.
+- A **shared memory** is a region of memory that is shared by the producer and consumer processes.
+  shared memory 라는 것은 메모리의 한 영역을 의미하는데, 생산자와 소비자가 공유하고 있는 영역이다. **이 shared memory 영역 관리를 OS 가 해준다!**
+
+![](src/14-shared-memory.jpeg)
+
+![](src/15-shared-buffer.png)
+
+## 3.6 IPC in Message-Passing Systems
+
+The scheme of using shared-memory
+
+- requires that these processes share a region of memory and that the code for accessing and manipulating the shared memory
+
+그렇다면 shared-memory가 가진 문제점은 뭘까? 메모리 영역을 공유하게 되면 메모리에 명시적으로 접근하고 조작하는 것을 application programmer 들이 다 해줘야 한다. 이게 단순히 프로그래머 둘이 생산 1개 소비 1개를 서로 버퍼 1개를 공유시킬 때는 크게 문제가 되지 않지만, 생산쪽 n 명, 소비쪽 n 명이 버퍼 1개로 공유해야 하는 경우 문제가 생길 수 있다.
+
+<br/>
+
+**Message-Passing**:
+
+- O/S provides the means for cooperating processes to communicate with each other via a message-passing facility.
+- OS가 메세지를 주고 받느 cooperating process들에게 수단을 제공해달라는거야. 그래서 커뮤니케이션을 할 때 메세지 패싱을 쉽게 할 수 있도록!
+- Two operations of the message-passing facility:
+  - send(message)
+  - receive(message)
+
+Communication Links:
+메세지 패싱 방식이라는 것은 메세지를 다이렉트로 보내겠다는 것이다. 물론 중간에 복잡한 것들은 있지만 그것들은 OS에 감춰져 있고, 우리는 커뮤니케이션 링크를 만들어 메세지를 주고받게 한다.
+
+- if two processes P and Q want to communicate 👉🏼 the must send to and receive messages from each other.<br/>
+  두 개의 프로세스가 커뮤니케이션 할 때 메세지를 보내고 받는 기능만 있으면 된다.
+
+- This communication link can be inplemented in a variety of ways.
+  - direct or indirect communication.
+  - synchronous and asynchronous communication.
+  - automatic or explicit buffering.
+
+커뮤니케이션 링크의 실제 구현에는 여러가지 방법이 있다. 그래서 복잡해 지는 거지.
+
+- direct: 아빠가 아들한테 용돈을 직접 줄거냐
+- indirect: 아빠가 책상에 용돈을 올려놓고 가면 아들이 가져감
+- synchronous: 아들 지갑에 2만원이 있으면 아빠가 용돈을 안주는 거, 다 썼으면 줌.
+- asynchronous: 아무때나 주고, 아무때나 받는 거
+
+<br/>
+<br/>
+
+- Under direct communication,
+  - each process that wants to communicate must explicitly name the recipient or sender of the communication.
+
+<small>
+--- [17/Mar/21] 24:07
+</small>

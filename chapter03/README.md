@@ -453,3 +453,131 @@ blocking send/receive는 상대방을 기다려주기 때문에 **synchronous** 
 #### IPC 한 눈에 정리하기
 
 ![](src/img/19-recap.png)
+
+## 3.7 Examples of IPC Systems
+
+#### Examples of IPC Systems
+
+- shared memory: POSIX Shared Memory - POSIX: Portable Operating System Interface (for UniX)
+- message passing: Pipes - One of the earliest IPC mechanisms on UNIX systems
+
+포직스의 쉐어드메모리 and 메세지 패싱방법으로는 패싱을 살펴본다 POSIX는 포터블 오퍼레이팅 시스템 인터페이스의 약자로 (유닉스 계열에서 사용함?) 이것은 오퍼레이팅 시스템에 유닉스가 표준이 없이 너무 난립하니까 표준화하자고 해서 운영체제의 표준화를 시도. 마소가 말을 들을리가 없음... Os 의 표준화를 포직스 덕분에 유닉스계열에서 난립할 수 있었긴 함. 그러면 뭐해, 대세는 리눅스인데..! 거기서 쉐어드 메모리기법을 어떻게 사용하는지 살펴보자.
+
+그리고 전통적으로 유닉스에서는 가장 기본적인 파이프 구조를 많이 사용함. 따라서 파이프를 메세지 패싱의 사례로 살펴보겠다.
+
+#### POSIX shared memory
+
+- is organised using memory-mapped files, which associate the region of shared memory with a file
+- First, create a shared-memory object:
+  - fd = shm_open(name, O_CREATE | ORDWR, 0666)
+- Configure the size of the object in bytes:
+  - ftruncate(fd, 4096)
+- Finally, establish a memory-mapped file:
+  - mmap(0,SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+POSIX는 memory-mapped 파일을 이용한다. 뒤에서 살펴 보겠지만, 우리가 파일을 오픈한다고 하면 이 파일이 보통은 하드디스크의 스토리지 시스템의 영역을 잡는다. 그런데 하드디스크(HDD) 대신 메모리에다가 파일을 생성하면 어떻게 될까? 👉🏼 겁나 빨라지겠지!⏩ 그래서 이 shared memory는 memory-mapped 파일을 사용해서 메모리 영역을 잡는다. 그러면 shared memory 파일을 메모리에 매핑 시켜서 shared memory 를 생성할 수 있다.<br/><br/>
+fd를 생성을 하고 그걸 가지고 오브젝트의 크기(read,write하는 하나의 정크의 크기)를 4096 바이트로 주면 4096바이트씩 읽고 쓰게 된다. 이렇게 ftruncate로 파일 사이즈를 정해주고 그 다음에 memory-mapped 파일을 shared memory에 mapping 시켜주면 된다.(mmap으로 파일을 읽고(PROT_READ) 쓸 수 있게(PROT_WRITE)해주고 shared memory에(MAP_SHARED) file description(fd)를 줘서 생성하면 됨)
+
+![](src/img/20-posix-shared-memory.png)
+
+![](src/ref/21-producer-process-POSIX-shm.png)
+![](src/ref/22-consumer-process-POSIX_shm.png)
+
+#### Pipes were
+
+- one of the first IPC mechanisms in early UNIX systems.
+- A pipe acts as a conduit allowing two processes to communicate.
+
+shpred memory 방식은 우리가 일일히 shm_open 하고 read 하고 write 하고 close 해주고.. 그러니까 부담스럽지. Pipes 방식은 UNIX에서 아주 초창기에 사용하던 IPC 매커니즘이다. 따라서 굉장히 간단함. 두개의 프로세스가 커뮤니케이션 하는 도구처럼 행동한다.
+<br/>
+
+Four issues of pipe implementation:
+
+- Does the pipe allow unidirectional or bidirectional communication?<br/>
+  파이프를 구현할 때 있어서 우리가 unidirectional 하게 구현할거냐 bidirectional 하게 구현할거냐에 따라 골치 아픔의 정도가 달라진다.. 😂 당연히 bidirection이 더 복잡하겠지? 그러니까 unidirection으로 하자!
+- In the case of two-way communication, is it half-duplex or full-duplex?<br/>
+  unidirection으로 two-way 커뮤니케이션을 만드는 것은 생각보다 간단하다. 파이프 두 개 만들면 되잖아!
+- Must a relationship exist between the communication process?<br/>
+  커뮤니케이팅 하는 프로세스 사이에 relationship이 존재해야 하느냐?
+  - such as parent-child<br/>
+    그럴 필요 없지만 파이프는 편의상 parent-child를 가져야 한다.
+- Can the pipes communicate over a network?<br/>
+  파이프가 네트워크 상에서 동작할 수 있느냐? 이건 쉽지 않다 그래서 네트워크에서는 파이프를 쓰지 않고 socket을 씀(소켓은 네트워크에서 쓸 수 있는 파이프)
+
+Two common types of pipes:<br/>
+파이프에 크게 두가지 타입이 있음 1) Ordinary pipes 2) Named pipes
+
+- Ordinary pipes:
+  - cannot be accessed from outside the process that created it.
+  - Typically, a parent process creates a pipe and uses it to communicate with a child process that it created.
+  - allow two processes to communicate in producer-consumer fashion.
+    - the producer writes to one end of the pipe(write end)
+    - the consumer reads from the other hand(read end)
+  - unidirectional: only one-way communication is possible.
+  - two-way comunication? **use two pipes!**<br/>
+    ![](src/ref/23-fd-ordinary-pipe.png)
+- Named pipes:
+  - can be accessed without a parent-child relationship
+  - 쉽게 말해 파이프에 이름을 붙여 줌
+
+On UNIX systems,
+
+- ordinary pipes are constructed using the function:
+  - pipe(int fd[])
+  - fd[0]: the read end of the pipe
+  - fd[1]: the write end
+
+## 3.8 Communication in Client-Server Systems
+
+지금까지 우리가 shared-memory에서 pipe 메세지 패싱방식 까지 했는데 이건 PC안에서 혼자 놀던 시절의 이야기다. 요즘엔 이런 컴퓨터 아무도 안쓰지? 다 인터넷에 연결되어 있잖아. 즉 networked 컴퓨터! 네트워크 컴퓨터는 다른 컴퓨터하고도 서로 통신할 수 있는거지. 이런걸 shared-memory나 pipe message passing 방식을 사용할 수 없지. 그래서 진화된 방법으로 socket 이라는게 생성되었다!<br/>
+두 컴퓨터끼리 소통할 때 각 컴퓨터가 서로 누군지 알아보기 위해서 identification 이 필요하다. 즉, 각각의 컴퓨터가 서로 누군지 알아보게 해주는 것 👉🏼 IP address! <br/>
+그러면 컴퓨터와 컴퓨터를 연결해주는 파이프도 특정해줘야겠지? 이걸 PORT(포트) 라고 한다! IP address와 port를 하나로 묶으면 이게 바로 socket(소켓)이 된다!
+
+![](src/img/24-socket.png)
+
+Two other strategies in client-server systems
+
+- Sockets are defined as endpoints for communication.
+- RPCs (Remote Procedure Calls)
+  - abstracts procedure calls between processes on networked systems
+
+소켓이라는 것은 커뮤니케이션을 위한 두개의 원격 컴퓨터 간의 연결을 위한 파이프 형태의 커넥션을 의미한다. 소켓을 통해 데이터를 주고 받을 수 있게 됨. 그런데 두개의 컴퓨터 사양이 다르고.. 조건들이 달라서 매우 복잡하고 까다로움(예를 들어 하나는 32bit, 다른 하나는 64bit...) 그래서 등장한게 RPCs(원격에 있는 프로시저들을 호출하겠다)! 네트워크 된 프로세스들 간의 프로시저 콜을 추상화하겠다. 쉽게 말하면, 어떤 배열의 합을 구해야 한다고 해보자. 이 배열의 값이 백만개가 있으면 10만개씩 쪼개서 더한 후 그 10개를 더하면 좀 쉽겠지? 다른 컴퓨터들에 sum이라는 함수가 있다는 걸 내가 알면 그 컴퓨터들에게 데이터를 10만개씩 값을 보내서 리턴 받아 계산하면 되잖아!
+
+![](src/img/25-socket.png)
+
+A socket is
+
+- identified by an _IP address_ concatenated with a _port_ number.
+
+IP 주소와 포트 넘버를 묶으면 하나의 네트워크 상에 있는 어떤 컴퓨터를 특정할 수 있다. 대표적으로 http 프로토콜의 경우 IP주소를 의미하는 도메인 이름. 생략되었지만 80이 포트넘버. 즉 우리가 도메인 주소를 치면 이 주소가 `IP주소+포트번호80`이다. 해석하자면, 해당 IP 주소를 가진 컴퓨터의 80포트에 request 를 보내줘~~ 그러면 맺어진 소켓 커넥션으로 웹서버가 데이터를 쭉 보내주면 그걸 받아서 화면에 보여준다.
+
+참고로 자바가 처음에 소켓을 쉽게 이용할 수 있는 인터페이스를 제공했음. 자바에는 세 개의 소켓이 있다.
+
+Java provides
+
+- a much easier interface to sockets and provides three different types of sockets
+  - Socket class: connection-oriented(TCP)
+  - DatagramSocket class: connectionless(UDP) : 브로드캐스팅
+  - MulticastSocket class: multiple recipients : 방송을 하긴 하는데 특정 recipients에게만 주겠다.
+
+<br/><br/>
+
+RPC(Remote Procedure Call)
+
+- one of the most common forms of remote service.
+- designed as a way to abstract the procedure-call mechanism for use between systems with network connections.
+- A client invokes a procedure on a remote host as it would invoke a procedure locally.
+
+The RPC system
+
+- hides the details that allow communication to take place by providing a stub on the client side.
+- The stub of client-side locates the server and marshals the parameters.<br/>
+  (원격 서비스를 이용하는 두개의 API 사이의 데이터를 정렬하는 것을 marshalling 이라고 한다.)
+- The stub of server-side received this message,
+  - unpacks the marshalled parameters, and performs the procedure on the server.
+
+<br/><br/>
+
+결국 RPC라는 것은 IPC(컴퓨터 내부에서 프로세스 두개가 통신하는 것)의 확장판! 네트워크에 연결되어 있는 것 끼리 통신하는 것!
+
+<!-- 클라이언트는 리모트 호스트에 있는 함수(프로시저)를 호출할 수 있도록 해주면 되겠다! 하지만 이게 쉽지 않아. 잘생각해보면 A라는 시스템에서 B라는 시스템에 있는 것을 호출해줘야 하는데 B에 있는 함수가 뭔지 알아야겠지? 그게 stub이라는 것. 이 클라이언트 쪽에 있는 stub을 통해서 서버의 skeleton을 호출해줘야 하는데, 우리가 함수를 호출할 때 파라미터를 넘겨줘야 하잖아. 함수 호출할 때 stub에 파라미터를 스트링을 넘겨줘야 하는데 이때... 뭔가 복잡한 일들이... 6강 39분부터.. 다시 듣자.. -->

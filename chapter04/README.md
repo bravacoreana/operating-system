@@ -60,6 +60,71 @@ So far, we assumed that
 3. 경제성도 좋음. 배틀그라운드 같은 게임을 생각해보자.(난 안하는딩.. 교수님이 이걸로 상상해보랬음) multi-programming(멀티프로세스)의 경우 그 큰 코드 영역을 복사 해서 써야 하잖아. 즉, 프로세스를 하나 생성하려면 코드 영역을 어마무시하게 잡아먹는다는거지. 하지만 이걸 multithreading 한다면 그 코드 영역을 thread 끼리는 공유하니까 복사할 필요가 없고 따라서 경제적이라는 거야. 그리고 context switching을 할 때도 PCB를 switching하는 것보다 thread를 switching 하는게 훨씬 간단하다.
 4. 확장성도 좋다. 멀티 프로세스 아키텍쳐(나중에 보겠지만 코어가 여러개 일 경우에 그 코어의 각각의 thread를 붙여서 병렬처리도 할 수 있다고 함)
 
+<br/>
+<br/>
+
+## 4.2 Multicore Programming
+
+### Multithreading in a Multicore system.
+
+- more efficient use of multiple cores for imporved concurrency.
+
+프로세스의 코드 영역이나 데이터 영역을 공유한 상태에서 프로그램 카운터다 레지스터 정보 등을 따로 가지며 하나의 프로세스 안에서 돌고 있는 lightweight processes 를 threads라고 한다. 그런데 문제가 그렇게 간단하지 않다. CPU 하나 RAM 하나 있을 때는 그나마 간단했는데, 코어(코어프로세스)가 여러개 있을 때 multithreading이 기능적으로는 좋은데 문제가 많이 생김.
+
+![](img/01-multicore.png)
+
+<br/>
+
+- Consider an application with four threads.
+  - single-core: threads will be interleaved over time.
+  - multiple-cores: some threads can run in parallel.
+
+multiple cores 가 있으면 concurrency가 매우 향상된다. 왜냐면 4개의 코어가 있다고 가정 해보자. 그리고 4 개의 threads 가 돈다고 생각 해보자. t1,t2,t3,t4가 어차피 concurrent 하게 돌아야 하는데 그러면 굳이 time-sharing 할 필요 없이 코어 1개 당 thread 하나 잡고 그 안에서만 돌면 context-switch가 필요가 없잖아~ 그리구 t5, t6가 생기면, t1이랑 t5랑 코어 하나를 공유하고, t2랑 t6랑 코어 하나를 공유하는 방식으로 하면 cuncurrency가 훨씬 향상되겠지!
+
+4개의 threads를 고려해보면 싱글코어에서는 시간에 따라서 interleaved 되어야 한다. (쉽게 설명하자면 사이사이에 끼어넣는다는 의미) 그런데 multiple-cores 면 병렬적으로 돌 수 있다. 다만 문제가 많이 생길 뿐..
+
+![](ref/fig-4-3-single-core.png)
+![](ref/fig-4-4-multicore.png)
+
+### Programming Challenges in Multicore systems.
+
+- Identifying tasks: find areas can be divided into separate tasks.
+- Balance: ensure the tasks to perform equal work of equal value.
+- Data splitting: data also must be divided to run on separate cores.
+- Data dependency: ensure that the execution of tasks is synchronised to accommodate the data denpendency.
+- Testing and debugging: more difficult than single-thread.
+
+어떤 것들이 multicore system programming에 챌린지가 될까?
+
+우리가 어떤 부분들이 seperate하게 실행될 수 있는지 찾아내는 능력이 필요하다. (어떤 task를 병렬처리 할 수 있느냐)예를 들어 100만 개의 정수가 있는데, 이 수의 총합을 구해야 한다고 해보자. 각각의 수는 모두 seperate 하니 하나씩 합하면 된다. 근데 이걸로 정렬을 하라고 하면, 파트를 나눠서 파트마다 정렬을 하고 다시 그 파트를 모아서 정렬해야 한다. 그래서 완전히 병렬적이진 않음. 이럴 때, 쪼개서 동시에 할 수 있는 건 뭔지, dependancy 가 뭔지 찾아내는게 프로그래머가 할 일이 된다.
+
+밸런스도 맞춰줘야 한다. equal value를 가지고 equal work를 하도록 해야겠지! t1한테는 일을 많이 주고 t2한테는 일을 덜 줘서 t2가 일찍 일이 끝나면 놀잖아. 즉, 밸런스를 잘 맞춰주는 것도 프로그래머가 할 일.
+
+데이터를 어떻게 쪼개느냐가 상당히 중요하다. seperate cores에 실행될 수 있는 데이터도 나눠져야 한다.
+
+그리고 이 데이터들의 dependancy도 고려해줘야 한다. 실행할 때 동기화를 잘 해서 나눠준 파트끼리 잘 합치도록 해야한다.
+
+테스팅과 디버깅이 single-thread에 비해 상당히 어려워진다. 지금까지 single-thread를 가지고 디버깅 할 때는 break point를 잡아서 그 안에 메모리 영역이 뭐가 들어가 있고, 원하는 값이 들어갔는지 확인하는 등의 일을 했는데, multi-threads의 경우 t1의 한 부분에 break point를 잡았는데 t2, t3는 계속 실행을 하고 있으면 골치 아파진다. 그래서 multi-threads가 들어가면 그 시스템은 디버깅과 테스팅이 굉장히 어려워지고, 그걸 또 잘하면..💸💸
+
+### Types of parallelism:
+
+![](ref/fig-4-5-parallelism.png)
+
+지금은 사실 더 발전해서 distributed system(분산 시스템)이 되었기 때문에 data parallelism / task parallelism을 구분할 필요가 없다.
+
+### Amdahl's Law:
+
+우리가 멀티쓰레딩까지 가능해진 상황에서 암달의 법칙을 확인해보자.
+
+![](ref/wiki-amdahls-law.png)
+
+- 코어는 무조건 많을수록 좋은가? 👉🏼 꼭 그런건 아니다!
+
+![](img/amdahls-law.png)
+
+<br/>
+<br/>
+
 ## 4.4 Thread Library
 
 ### Thread in Java

@@ -125,7 +125,62 @@ multiple cores 가 있으면 concurrency가 매우 향상된다. 왜냐면 4개�
 <br/>
 <br/>
 
+## 4.3 Multithreading Models
+
+### Two types of threads:
+
+- user threads and kernel threads
+- User threads are
+  - supported above the kernel and are managed _without kernel support_.
+- Kernel threads are
+  - supported and managed **directly** _by the operating system_.
+
+쓰레드에는 두 개의 타입이 있다. 하나는 유저쓰레드, 다른 하나는 커널 쓰레드. 지금까지 우리가 생각했던 대로 프로세스가 있고, 프로세스 내부에서 여러개로 동작하는 쓰레드는 Java에서도 지원해줌. 그런데 자바는 virtual machine이지 운영체제가 아님. 그 말인 즉슨, OS 위에서 Java VM이 하나의 소프트웨어로 동작하는데 얘가 쓰레딩을 하는 거다. 이 자바 내부의 쓰레드는 컨트롤을 여러개로 동시에 실행할 수 있을 뿐이지, 운영체제가 가지고 있는 CPU 특히 CPU 안의 코어에는 자기 마음대로 드나들 수가 없다. 자바VM은 운영체제가 아니니까! 이런걸 유저쓰레드라고 한다. 즉, 운영체제와는 무관한 쓰레드.
+
+그런데 요즘에는 네이티브 쓰레드를 사용한다. 네이티브 쓰레드는 운영체제의 쓰레드를 사용하는 것으로 커널쓰레드라고 부른다. OS입장에서는 cpu 코어도 직접 제어를 하잖아? 그러면 이 코어에서 직접 쓰레딩 할 수 있는 쓰레드들을 커널쓰레드로 운영체제가 직접 생산해서 운영체제가 직접 관리함.
+
+따라서 사용자 모드에서 사용하는 쓰레드를 유저 쓰레드라고 하고 커널 모드에서 사용하는 쓰레드를 커널 쓰레드라고 한다.
+
+유저 쓰레드는 커널 위에서, 즉 커널 서포트가 없이, 유저 모드에서 쓰레딩 함. 반대로 커널쓰레드는 오퍼레이팅 시스템(os)이 직접 매니지함.
+
+![](ref/fig-4-6-threads-user-and-kernel.png)
+
+<br/>
+
+### Three relations between user and kernel threads:
+
+- Many-to-One Model
+- One-to-One Model
+- Many-to-Many Model
+
+유저쓰레드와 커널쓰레드 사이에 어떤 관계가 있을까?
+
+커널쓰레드 한 개가 많은 유저 쓰레들을 감당하게 하거나, 아니면 1:1로 매핑, 혹은 다양한 유저쓰레드가 다양한 커널 쓰레드의 서비스를 받을 수도 있다.
+
+Many-to-One 모델의 경우 가장 기본적인 모델이지만 문제점이 많다. 유저 쓰레드가 수천, 수만개면 커널 쓰레드 하나로 감당이 안되니까! 그래서 One-to-One 모델로 커널쓰레드 하나당 유저쓰레드 하나를 매핑시켜 놓고 만약에 커널 쓰레드가 모자라면 여러개로 붙이면 되겠지! 그래서 Many-to-Many 모델처럼 커널 쓰레드 여러개가 유저 쓰레드 여러개에게 서비스를 제공하고, 유저 쓰레드는 다 쓰면 반납하는 식으로 처리하면 된다.
+
+![](ref/fig-4-7-many-to-one.png)
+
+![](ref/multithread-models.png)
+
+<br/>
+<br/>
+
 ## 4.4 Thread Library
+
+### A thread library privdes
+
+- an API for _creating_ and _managing_ threads.
+- Three main thread libraries are in use today:
+  - POSIX Pthreads
+  - Windows thread
+  - Java thread
+
+쓰레드 라이브러리가 있어야 쓰레드를 사용할 수 있다. 그래서 쓰레드를 생성하고 관리하는 여러가지 쓰레드 라이브러리(예: 자바API)를 써야한다. 요즘 자주 사용되는 라이브러리 3개는 (1) POSIX Pthreads (2) Widdows thread (3) Java thread
+
+- Pthreads
+  - refers to the POSIX standard(IEEE 1003.1c)
+  - just a specification for thread behaviour, not an implementation.
 
 ### Thread in Java
 
@@ -140,3 +195,43 @@ multiple cores 가 있으면 concurrency가 매우 향상된다. 왜냐면 4개�
   - define a new class that implements the Runnable interface and override its `public void run()` method.
 - Using the _Lambda_ expression(beginning with Java Version 1.8)
   - rather than defining a new class, use a _lambda expresson_ of Runnable instead.
+
+<br/>
+<br/>
+
+## 4.5 Implicit Threading
+
+### The streategy of Implicit Threading
+
+- The design of concurrent and parallel applications is too difficult for application developers.
+  - i.e., the design of multithreading in multicore systems
+- So, transfer the difficulty to compiler and run-time libraries.
+
+쓰레드 만드는게 골치아프다. 이 골치 아픈걸 웬만하면 알아서 해줘~! 그래서 Implicit threading을 이용해 쓰레드의 복잡함을 추상화 시킴. (여기서 살펴 볼 4가지 테크닉이 있음.)
+concurrent(시분할 처리) 해야 하는 데다가 parallel 해야 하므로 멀티 코어를 이용해야 하는 어플리케이션을 디자인 하는 것은 멀티코어시스템에서 멀티쓰레딩을 하는 응용어플리케이션을 만드는 것과 같다 => 너무 어려워!
+
+그래서 이 어려운 점을 컴파일러나 라이브러리가 알아서 해줘!
+
+### Four alternative approches using implicit threading:
+
+- Thread Pools
+  - create a number of threads in a pool where they await work.
+- Fork & Join
+  - explicit threading, but an excellent candidate for implicit threading.
+- OpenMP
+  - a set of compiler directives and an API for programs written in C/C++.
+- Grand Central Dispatch(GCD)
+  - developed by Apple for its macOS and iOS operating system.
+
+implicit threading을 하기 위해서 쓰레드 풀이라는 것을 이용할 수 있다. 쓰레드 풀(pool)을 만들고 여러개의 쓰레드들을 저장해놓고 만약에 내가 어떤 쓰레드가 필요하면 그 풀에서 쓰레드를 꺼내서 쓰겠다. new Thread를 하면 쓰레드를 하나 만드는 것이다. 그런데 이게 무한 루프에 빠져서 쓰레드가 무한히 생기면 프로그램이 뻗겠지? 그래서 ThreadPool.getThread() 같은 걸 써서 풀에 한정적인 쓰레드를 넣어놓고 꺼내 쓰면 된다.
+
+포크 앤 조인하는 매커니즘을 가지고 explicit 하게 쓰레딩을 했는데, implicit threading도 할 수 있다.
+
+오픈MP는 컴파일러 지시어를 줘서 아주 쉽게 C 나 C++에서 병렬처리를 할 수 있도록 지원해준다.
+
+### OpenMP
+
+- identifies parallel regions as blocks of code that may run in parallel.
+- insert compiler directives into source code at parallel regions.
+
+OpenMP가 뭐냐면 parallel region만 지정해주면 그 코드 블럭을 알아서 parallel하게 실행시켜주도록 해주겠다는 것. 즉, 컴파일러에게 일을 다 시키는 것이다. OpenMP는 컴파일러에게 "여기가 parallel 하게 돌아가야 하는 곳이에용" 라고 해주면 그 부분을 OpenMP가 그 부분을 병렬로 쓰레딩을 만들어주는 것이다.

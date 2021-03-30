@@ -29,7 +29,7 @@
 |    1    |       Introduction       | 2021-Mar-03 | 2021-Mar-04 | 📝 [READ](/chapter01/README.md) |
 |    2    |      O/S Structures      | 2021-Mar-03 | 2021-Mar-04 | 📝 [READ](/chapter02/README.md) |
 |    3    |        Processes         | 2021-Mar-14 | 2021-Mar-16 | 📝 [READ](/chapter03/README.md) |
-|    4    |   Thread & Concurrency   |             |             |                                 |
+|    4    |   Thread & Concurrency   | 2021-Mar-23 | 2021-Mar-30 | 📝 [READ](/chapter04/README.md) |
 |    5    |      CPU Scheduling      |             |             |                                 |
 |    6    |  Synchronization Tools   |             |             |                                 |
 |    7    | Synchronization Examples |             |             |                                 |

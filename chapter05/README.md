@@ -23,11 +23,18 @@ CPU 스케줄링은 멀티프로그램 OS 에서 필수가 된다. 이 멀티프
 
 ![](ref/fig-5-1-bursts.png)
 
+<br/>
+<br/>
+
 ### CPU scheduler
 
 - selects a process from the processes in memeory that are **ready** to execute and **allocates** the CPU to that process.
 
-메모리에 로드되어 있는 프로세스들 중에 어떤 놈에게 cpu를 할당해 줄거냐! 다시 말해, wait 상태에 있는 애들은 보내 줄 필요가 없잖아? 따라서 ready 상테에 있는 프로세스들 중에서 cpu를 할당해 줄 수 있는 프로세스를 선택하는게 cpu 스케줄러!
+"메모리에 로드되어 있는 프로세스들 중에 어떤 놈에게 cpu를 할당해 줄거냐!"를 고려하는 것이 우리의 숙제.
+
+다시 말해, wait 상태에 있는 애들은 보내 줄 필요가 없잖아? 따라서 ready 상태에 있는 프로세스들 중에서 cpu를 할당해 줄 수 있는 프로세스를 선택하는 게 cpu 스케줄러 문제!
+
+<br/>
 
 ### Then, how can we select a next process?
 
@@ -36,6 +43,8 @@ CPU 스케줄링은 멀티프로그램 OS 에서 필수가 된다. 이 멀티프
 - _Priority Queue_: How can we determine the priority of a process?
 
 대기중인 queue를 linked list로 만들거냐, binary tree로 만들거냐! 그리고, FIFO Queue를 따를 것이냐! 아니면 Priority 를 지정해줘서 priority에 따라 queue를 지정할 것이냐, 그렇다면 priority는 어떻게 결정할 것이냐!
+
+<br/>
 
 ### Preemptive(선점형) kernel vs Non-preemptive(비선점형) kernel
 
@@ -48,6 +57,8 @@ CPU 스케줄링은 멀티프로그램 OS 에서 필수가 된다. 이 멀티프
 
 Non-preemtive scheduling는 cpu를 프로세스가 선점하면 그 프로세스가 자발적으로 terminating 하거나 switching 해서 release 할 때까지는 그 프로세스가 cpu를 쓰도록 내버려 두는 것이다.
 Preemtive는 스케줄러가 어떤 이유에 의해 cpu를 선점하고 있는 프로세스를 쫓아낼 수 있는 것이다.
+
+<br/>
 
 ### Decision making for CPU-scheduling
 
@@ -62,3 +73,100 @@ cpu-scheduling을 위한 의사 결정을 살펴보자. 4가지 경우가 있다
 
 - 1번 & 4번 : non-preemptive -> 고민할 이유가 없어!
 - 2번 & 3번 : choices - preemtive or non-preemtive
+
+### The dispatcher is
+
+- a module that gives control of the CPU's core
+  - to the process selected by the CPU scheduler.
+- the functions of dispatcher:
+
+  - switching context from one process to another
+  - switching to user mode
+  - jumping to the proper location to resume the user program
+
+- dispatcher: 프로세서에게 cpu를 넘겨주는 것. 즉, cpu 코어의 컨트롤을 넘겨주는 것(context switch를 해주는 것)
+- dispatcher 가 하는 일
+  - 컨텍스트를 하나의 프로세스에서 다른 프로세스로 넘겨줌
+  - 유저모드로 바꿔줌
+  - 사용자 프로그램을 resume하기 위해 적당한 위치로 넘겨줌
+
+> **스케줄러는 어떤 프로세스를 변경할 지 선택, 실제 스위치는 dispatcher**
+
+#### The dispatcher should be as fast as possible
+
+- since it is invoked during every context switch.
+- The dispatcher latency is the time to stop one process and start another running.
+
+  ![](ref/fig-5-3-dispatcher.png)
+
+<br />
+<br />
+<br />
+
+## 5.2 Scheduling Criteria
+
+### Scheduling Criteria
+
+- CPU utilisation: to keep the CPU as busy as possible: cpu가 노는 꼴을 못보겠다!
+- Throughput: the number of processes completed per time unit.: 단위시간 당 완료되는 프로세스 수를 늘리자!
+
+- Turnaround time:
+
+  - how long does it take to execute a process?
+  - from the time of submission to the time of completion.
+
+- **Waiting time:** ⭐️
+
+  - the amount of time that a process spends waiting in the ready queue.
+  - the sum of periods spend waiting in the ready queue.
+  - waiting time을 최소화 시키면 tunaround/throughput/cpu utilisation 모두 높아짐
+
+- Response time:
+  - the time it takes to start responding
+
+## 5.3 Scheduling Algorithms
+
+### SPU Scheduling Problem:
+
+- decide which of the processes in the ready queue.
+  - is to be allocated the CPU's core.
+
+### The solutions for the scheduling problem:
+
+- FCFS: first-come, first-served (구식)
+- SJF: Shortest Job First(SRTF: Shortest Remaining Time First)
+- RR: Round-Robin (시분할과 관계가 있음 - 정해진 시간마다 쪼개서 분배, 현대식)
+- Priority-based
+- MLQ: Multi-Level Queue
+
+#### FCFS Scheduling
+
+- First Come, First Served : the simplest CPU-scheduling algorithm.
+- The process that requests the CPU first
+  - is allocated the CPU first
+  - can be easily implemented with a FIFO queue.
+- The average waiting time under the FCFS policy
+  - is generally not minimal and may vary substantially if the processes' **CPU-burst times** vary greately.
+- Preemtive or non-preemtive?
+  - The FCFS scheduling algorithm is **non-preemptive**.
+    <br/>
+
+![](img/scheduling-fcfs.jpeg)
+
+<br/>
+
+- The performance in a dynamic situation:
+  - what if we have one CPU-bound and many I/O-bound processes?
+    - Convoy Effect(똥차효과: 똥차가 길을 가로 막음)
+      - all the other processes wait for the one big process to get off the CPU.
+      - results in lower CPU and device utilisation than might be possible if the shorter processes were allowed to go first.
+    - Convoy Effect 때문에 FCFS로는 좋은 효과를 낼 수 없다.
+
+<br/>
+
+#### SJF Scheduling
+
+- Shortest-Job-First: shortest-next-CPU-burst first scheduling
+- SJF associates with each process the length of the process's next CPU burst.
+- When the CPU is available, assign it to the process that has the smallest next CPU burst.
+- If two or more processes are even, break the tie with the FCFS.

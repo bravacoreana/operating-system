@@ -139,7 +139,7 @@ cpu-scheduling을 위한 의사 결정을 살펴보자. 4가지 경우가 있다
 - Priority-based
 - MLQ: Multi-Level Queue
 
-#### FCFS Scheduling
+### FCFS Scheduling
 
 - First Come, First Served : the simplest CPU-scheduling algorithm.
 - The process that requests the CPU first
@@ -164,9 +164,52 @@ cpu-scheduling을 위한 의사 결정을 살펴보자. 4가지 경우가 있다
 
 <br/>
 
-#### SJF Scheduling
+### SJF Scheduling
 
 - Shortest-Job-First: shortest-next-CPU-burst first scheduling
 - SJF associates with each process the length of the process's next CPU burst.
 - When the CPU is available, assign it to the process that has the smallest next CPU burst.
 - If two or more processes are even, break the tie with the FCFS.
+
+- The SJF scheduling algorithm is **provably optimal**, it gives the _minimum average waiting time_ for a given set of processes.
+- Moving a short process before a long one
+  - decreases the waiting time of the short process
+  - more than it increases the waiting time of the long process.
+  - Consequently, the average waiting time decreases.
+- The SJF algorithm can be either **preemtive** or **non-preemtive**. (preemptive가 유리)
+  - The choice arises:
+    - when a new process arrives at the ready queue.
+    - when a previous process is still executing.
+  - What if newly arrived process is shorter than
+    - what is left of the currently executing process?
+- 결국 이론적으로 optimal 이지만, 실제로 사용하지는 않는다.
+
+#### Can you imploement the SJF scheduling?
+
+- There is no way to know _the length of the next CPU burst_.
+- Try to approximate the SJF scheduling:
+  - we may be able to predict the length of the next CPU.
+  - Pick a process with the shortest predicted CPU burst.
+
+#### How to predict the next CPU burst?
+
+- exponential average of the measured lengths of previous CPU burst.
+- "과거를 통해 미래를 예측한다"
+- 지수적 평균을 내는 이유?
+
+![](img/scheduling-sjf.jpeg)
+![](ref/fig-5-4-calc-cpu-burst.png)
+
+### SRTF Scheduling
+
+- Shortest-Remaining-Time-First: Preemtive SJF scheduling.
+- SRTF will preempt the currently running process, whereas a non-preemtive SJF will allow it to finish its CPU burst.
+
+![](ref/srtf.png)
+
+- The waiting time:
+  - Total Waiting time: [(10 - 1) + (1 - 1) + (17 - 2) + (5 - 3)] = 26
+  - Average Waiting time: 26/4 = 2.5 (SJF 보다 짧음 ∵ 도착하자마자 선점할 수 있기 때문에 선점을 못하는 SJF보다 효율적 -> 최적은 SRTF가 된다! )
+
+
+<small>@18.15</small>

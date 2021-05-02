@@ -212,4 +212,104 @@ cpu-scheduling을 위한 의사 결정을 살펴보자. 4가지 경우가 있다
   - Average Waiting time: 26/4 = 2.5 (SJF 보다 짧음 ∵ 도착하자마자 선점할 수 있기 때문에 선점을 못하는 SJF보다 효율적 -> 최적은 SRTF가 된다! )
 
 
-<small>@18.15</small>
+### RR Scheduling
+
+- Round-Robin: _preemptive FCFS_ with a _time quantum_.
+- 즉, FCFS를 시분할해서, 일정 시간동안 일 했으면 빠져나가도록 함
+- A **time quantum**(or time slice) is a small unit of time.
+  - generally from 10 to 100 milliseconds in length.
+- The ready queue is treated as a _circular queue_.
+
+- One of two things will happen: 
+  - The process may have a CPU burst of **_less than_** one time quantum.
+    - the process itself will release the CPU voluntarily
+    - the scheduler will proceed to the next process in the ready queue.
+  - If the CPU burst is **_longer than_** one time quantum,
+    - the timer will go off and will cause an interrupt to the OS.
+    - a context switch will be executed, the process will be put at the tail of the ready queue.
+
+
+    ![](img/scheduling-rr.png)
+
+- Note that
+  - The average waiting time under the RR polixy is often long.
+  - The RR scheduling algorithm is **preemptive**.
+    - if a process's CPU burst exceeds one time quantum, that process is _preempted_ and is put back in the ready queue.
+
+- The performance of the RR scheduling algorithm
+  - depends heavily on the **size** of the _time quantum_.
+
+  ![](ref/fig-5-5-time-quantum.png)
+
+  ![](ref/fig-5-6-turnaround-time.png)
+
+
+### Priority-base Scheduling
+
+- A priority is associated with each process, and the CPU is allocated to the process with the _highest priority_. 
+- Processes with _equal_ priority are scheduled in **FCFS** order.
+- Note that the SJF is a special case of the priority-based scheduling. in this case, the priority is the inverse of the next CPU burst.
+
+  ![](img/scheduling-priority-base.png)
+
+- Priority scheduling can be
+  - either preemptive(SRTF) or non-preemptive(SJF)
+- The problem of **starvation**(indefinite blocking)
+  - a blocked process: ready to run, but waiting for the CPU.
+  - some _low-priority_ processes may wait indefinitely.
+- A solution to the starvation problem is **aging**
+  - gradually increase the priority or processes that wait in the sytsem for a long time.
+
+
+#### combine RR and Priority scheduling:
+
+- excute the _highest-priority_ process and runs processes with the _same_ priority using _round-robin_ scheduling.
+
+  ![](img/rr_and_priority.png)
+
+### Multi-Level Queue(MLQ) Scheduling
+
+- 안드로이드 휴대폰에서 게임을 한다고 가정
+  - 네트워크 데이터를 받고, 사운드, 디스플레이도 있음
+  - 중간에 전화가 올 수도 있음
+- 이럴 때 모두가 같은 priority를 갖고 있지 않음
+  - real-time에 higher priority를 줌
+
+  ![](ref/fig-5-7-mlq.png)
+
+<br />
+
+  ![](ref/fig-5-8-mlq2.png)
+
+- 하지만 이럴 경우 우선순위가 높은 것의 처리 때문에 우선 순위가 낮은 것들이 처리가 안될 수 있음
+- 해결책:
+  ![](ref/fig-mlfq.png)
+
+
+<br/>
+<br/>
+
+## 5.4 Thread Scheduling
+
+- On most modern operating systems
+  - it is **kernel threads** - not **processes** - that are being scheduled, and user threads are managed by a thread library.
+    - so the kernel is unaware of them, 
+    - ultimately mapped to associated kernel threads.
+
+> OS 커널은 CPU Scheduling을 kernel thread를 가지고 스케줄링을 한다.
+
+## 5.6 Real-Time CPU Scheduling
+
+- Scheduling in the Real-Time Operating System. 
+  - Real-Time: 주어진 시간 내에 task를 완료할 수 있는 것
+- **Soft Realtime** vs **Hard Realtime**
+  - Soft real-time systems provide no guarantee
+    - as to when a critical real-time process will be scheduled.
+    - guarantee only that a critical process is preferred to noncritical one.
+    - 전화 통화를 하는데 살짝은 끊겨도 괜찮다.
+  - Hard real-time systemds have stricter requirements.
+    - A task must be services by its deadline.
+
+
+
+> 스케줄러 파트는 exercise 꼼꼼하게 풀어보기
